@@ -10,10 +10,7 @@
 # Make sure that you have the directory set to the correct location for the data.
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import warnings
-
-warnings.filterwarnings('ignore')
 import matplotlib.pyplot as plt
 
 college = pd.read_csv('C:/Users/rahma/Desktop/Pycharm-HW/Data/College.csv')
