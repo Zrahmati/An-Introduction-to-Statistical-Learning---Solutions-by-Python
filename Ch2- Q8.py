@@ -12,55 +12,56 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import warnings
+
 warnings.filterwarnings('ignore')
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('C:/Users/rahma/Desktop/Pycharm-HW/Data/College.csv')
+college = pd.read_csv('C:/Users/rahma/Desktop/Pycharm-HW/Data/College.csv')
 
 # (b)Look at the data using the View() function. You should notice that the first column is just the name of each university. We don’t
 # really want R to treat this as data. However, it may be handy to have these names for later. Try the following commands:
 
-df_college = df.set_index(['Unnamed: 0'], append=True, verify_integrity=True)
-df_college.rename_axis([None, 'College'], inplace=True)
-print(df_college.head())
+college2 = pd.read_csv('C:/Users/rahma/Desktop/Pycharm-HW/Data/College.csv', index_col=0)
+college3 = college.rename({'Unnamed: 0': 'College'}, axis=1)
+college3 = college3.set_index('College')
+college = college3
 
-# (c) i. Use the summary function to produce a numerical summary of the variables in the data set.
-print(df_college.describe())
+# (c) Use the describe() method of to produce a numerical summary of the variables in the data set.
+print(college.describe())
 
-# (c) ii. Use the pairs() function to produce a scatterplot matrix of the first ten columns or variables of the data. Recall that
-# you can reference the first ten columns of a matrix A using A[,1:10].
-sns.pairplot(df_college.iloc[:, 1:11]);
+# (d) Use the pd.plotting.scatter_matrix() function to produce a scatterplot matrix of the first columns [Top10perc, Apps, Enroll].
+# Recall that you can reference a list C of columns of a data frame A using A[C].
+pd.plotting.scatter_matrix(college[["Top10perc", "Apps", "Enroll"]])
 plt.show()
-# (c) iii. Use the plot() function to produce side-by-side boxplots of Outstate versus Private.
-sns.boxplot(x=df_college['Private'], y=df_college['Outstate']);
-plt.show()
+# plt.savefig('scatterplot_matrix.png')
 
-
-# (c) iv. Create a new qualitative variable, called Elite, by binning the Top10perc variable. We are going to divide universities
-# into two groups based on whether or not the proportion # of students coming from the top 10 % of their high school classes exceeds 50 %
-# Use the summary() function to see how many elite universities there are. Now use the plot() function to produce side-by-side boxplots of Outstate versus Elite.
-
-df_college['Elite'] = df_college['Top10perc'] > 50
-print(df_college['Elite'].sum())
-sns.boxplot(x=df_college['Elite'], y=df_college['Outstate']);
+# (e) Use the boxplot() method of college to produce side-by-side boxplots of Outstate versus Private.
+college.boxplot(column='Outstate', by='Private', figsize=(8, 6))
 plt.show()
 
-# v. Use the hist() function to produce some histograms with differing numbers of bins for a few of the quantitative variables.
-# You may find the command par(mfrow = c(2, 2)) useful: it will divide the print window into four regions so that four plots can be made simultaneously.
-# Modifying the arguments to this function will divide the screen in other ways.
+# (f) Create a new qualitative variable, called Elite, by binning the
+# Top10perc variable into two groups based on whether or not the
+# proportion of students coming from the top 10% of their high
+# school classes exceeds 50%
 
-# to standardize or scale X -> Xi = Xi - mean(Xi) / stn dev(Xi)
-def scale(df):
-    return (df-df.mean())/(df.std())
-var_count = 12
-df_stand = scale(df_college.iloc[:, 1:var_count+1])
-
-# The melt function is used to reshape the DataFrame. It essentially "melts" or unpivots the DataFrame from a wide format to a long format.
-df_melted = df_stand.melt(var_name='cols', value_name='vals')
-
-# Plot grid of plots
-grid = sns.FacetGrid(df_melted, col='cols', col_wrap=4)
-grid.map(sns.distplot, 'vals')
-grid.set(xlim=(-4, 4));
+college['Elite'] = pd.cut(college['Top10perc'], [0, 50, 100], labels=['No', 'Yes'])
+elite_counts = college['Elite'].value_counts()
+print(elite_counts)
+college.boxplot(column='Outstate', by='Elite', figsize=(8, 6))
 plt.show()
 
+# (g) Use the plot.hist() method of college to produce some histograms with differing numbers of bins for a few of the quantitative variables. The command plt.subplots(2, 2) may be useful: it will divide the plot window into four regions so that four
+# plots can be made simultaneously. By changing the arguments
+# you can divide the screen up in other combinations.
+
+variables = ["Apps", "Accept", "Enroll", "Top10perc", "Top25perc", "F.Undergrad", "P.Undergrad",
+             "Outstate","Room.Board"]
+fig, axes = plt.subplots(3, 3, figsize=(10, 8))
+axes = axes.flatten()
+for i, variable in enumerate(variables):
+    college[variable].plot.hist(ax=axes[i], bins=50)
+    axes[i].set_title(f'Histogram of {variable}')
+    axes[i].set_xlabel(variable)
+    axes[i].set_ylabel('Frequency')
+plt.tight_layout()
+plt.show()
